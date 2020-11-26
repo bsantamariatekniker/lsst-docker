@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# Get the path of the directory where this script is stored
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+ls /home/lsst
+
+# Install yum dependencies
+sudo yum install -y boost-devel tcl git python3 which make java-1.8.0-openjdk-devel gcc-c++ cmake
+
+# Clone dependencies
+mkdir ~/LSST && cd ~/LSST
+
+# Clone SAL
+git clone https://github.com/lsst-ts/ts_sal.git
+cd ts_sal
+git checkout 27a042fbf15b17a73e065fa158dab3c4789decf4
+cd ..
+
+# Clone ts_opensplice
+git clone https://github.com/lsst-ts/ts_opensplice.git
+cd ts_opensplice
+git checkout 2ac85e786d2828f6b8dab0ca781162518428df15
+cd ..
+
+# Copy ts_opensplice inside SAL
+cp -R ts_opensplice/OpenSpliceDDS ts_sal/
+cd ~
+
+# Edit the ts_sal setup.env file
+sed -i "s/### export LSST_SDK_INSTALL=\/home\/saluser/export LSST_SDK_INSTALL=\/home\/lsst\/LSST\/ts_sal/g" ~/LSST/ts_sal/setup.env
+sed -i "s/### export OSPL_HOME=\$LSST_SDK_INSTALL\/OpenSpliceDDS\/V6.9\/HDE\/x86_64.linux/export OSPL_HOME=\$LSST_SDK_INSTALL\/OpenSpliceDDS\/V6.9\/HDE\/x86_64.linux/g" ~/LSST/ts_sal/setup.env
+sed -i "s/### export PYTHON_BUILD_VERSION=3.6m/export PYTHON_BUILD_VERSION=3.6m/g" ~/LSST/ts_sal/setup.env
+sed -i "s/### export PYTHON_BUILD_LOCATION=\/usr\/local/export PYTHON_BUILD_LOCATION=\/usr\/local/g" ~/LSST/ts_sal/setup.env
+
+cat ~/LSST/ts_sal/setup.env
+
+# Source ts_sal setup.env and add it to bashrc
+source ~/LSST/ts_sal/setup.env
+echo "source ~/LSST/ts_sal/setup.env" >> ~/.bashrc
+
+# MTMount SAL Code Generation
+cp $SCRIPT_DIR/xml/* $SAL_WORK_DIR
+cd $SAL_WORK_DIR
+salgenerator MTMount validate
+salgenerator MTMount html
+salgenerator MTMount sal cpp
+salgenerator Rotator validate
+salgenerator Rotator html
+salgenerator Rotator sal cpp
+
+echo "LSST ts_sal installation finished"
