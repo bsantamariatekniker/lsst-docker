@@ -6,7 +6,8 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 ls /home/lsst
 
 # Install yum dependencies
-sudo yum install -y boost-devel tcl git python3 which make java-1.8.0-openjdk-devel gcc-c++ cmake
+sudo yum install -y epel-release
+sudo yum install -y boost-devel tcl git python3 which make java-1.8.0-openjdk-devel gcc-c++ cmake3
 
 # Clone dependencies
 mkdir ~/LSST && cd ~/LSST
